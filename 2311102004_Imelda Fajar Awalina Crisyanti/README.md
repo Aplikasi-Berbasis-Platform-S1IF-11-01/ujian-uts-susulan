@@ -1,4 +1,77 @@
-<h1 align="center">LAPORAN PRAKTIKUM</h1> <h1 align="center">APLIKASI BERBASIS PLATFORM</h1> <br> <h2 align="center">UJIAN-UTS</h2> <h2 align="center">WEB PORTOFOLIO</h2> <br><br> <p align="center"> <img src="asset/logo.png" width="300"> </p> <br><br> <h2 align="center">Disusun Oleh :</h2> <p align="center" style="font-size:28px;"> <b>Imelda Fajar</b><br> <b>2311102004</b><br> <b>SI IF 11 REG 01</b> </p> <br> <h2 align="center">Dosen Pengampu :</h2> <p align="center" style="font-size:28px;"> <b>Dimas Fanny Hebrasianto Permadi, S.ST., M.Kom</b> </p> <br> <h2 align="center">Asisten Praktikum :</h2> <p align="center" style="font-size:28px;"> <b>Apri Pandu Wicaksono</b><br> <b>Rangga Pradarrell Fathi</b> </p> <br> <h1 align="center">LABORATORIUM HIGH PERFORMANCE</h1> <h1 align="center">FAKULTAS INFORMATIKA</h1> <h1 align="center">UNIVERSITAS TELKOM PURWOKERTO</h1> <h1 align="center">TAHUN 2026</h1> <hr> ## DASAR TEORI Laravel merupakan framework PHP modern yang menggunakan arsitektur MVC (Model-View-Controller) untuk membangun aplikasi web secara terstruktur dan efisien. Dengan konsep ini, pengelolaan kode menjadi lebih rapi karena setiap bagian aplikasi memiliki tanggung jawab masing-masing, seperti pengolahan data, tampilan, dan logika program. Pada project web profile ini, Laravel digunakan sebagai backend untuk mengelola data seperti informasi diri, daftar skill, dan project. Data tersebut disimpan di dalam database dan diakses melalui Model, kemudian diproses oleh Controller sebelum ditampilkan ke pengguna melalui View. Selain itu, project ini memanfaatkan API (Application Programming Interface) yang dibuat menggunakan Laravel. API berfungsi sebagai penghubung antara backend dan frontend, sehingga data profile, skill, dan project tidak ditampilkan secara langsung, melainkan diambil terlebih dahulu dari server. Untuk meningkatkan interaktivitas, digunakan teknologi AJAX (Asynchronous JavaScript and XML) dalam pengambilan data. Dengan AJAX, halaman web dapat menampilkan atau memperbarui data tanpa perlu melakukan reload halaman. Hal ini membuat website profile menjadi lebih dinamis dan memberikan pengalaman pengguna yang lebih baik. Laravel juga menyediakan fitur migration dan seeder yang digunakan untuk mengatur struktur database serta mengisi data awal. Fitur ini membantu dalam proses pengembangan karena memudahkan pembuatan tabel dan pengelolaan data secara sistematis. Dengan kombinasi Laravel, API, dan AJAX, web profile yang dibuat mampu menampilkan informasi secara dinamis serta menyediakan dashboard admin untuk mengelola konten seperti deskripsi, foto profile, skill, dan project. Hal ini menjadikan aplikasi lebih fleksibel dan mudah dikembangkan di masa depan. ## SOURCE CODE Source code untuk pengerjaan project PORTOFOLIO secara lengkap dapat dilihat pada repositori dan folder proyek aplikasi ini, khususnya berada di dalam folder /portfolio. ### login.blade.php
+<h1 align="center">LAPORAN PRAKTIKUM</h1>
+<h1 align="center">APLIKASI BERBASIS PLATFORM</h1>
+
+<br>
+
+<h2 align="center">UJIAN-UTS</h2>
+<h2 align="center">WEB PORTOFOLIO</h2>
+
+<br><br>
+
+<p align="center">
+  <img src="asset/logo.png" width="300">
+</p>
+
+<br><br>
+
+<h2 align="center">Disusun Oleh :</h2>
+
+<p align="center" style="font-size:28px;">
+  <b>Imelda Fajar</b><br>
+  <b>2311102004</b><br>
+  <b>SI IF 11 REG 01</b>
+</p>
+
+<br>
+
+<h2 align="center">Dosen Pengampu :</h2>
+
+<p align="center" style="font-size:28px;">
+  <b>Dimas Fanny Hebrasianto Permadi, S.ST., M.Kom</b>
+</p>
+
+<br>
+
+<h2 align="center">Asisten Praktikum :</h2>
+
+<p align="center" style="font-size:28px;">
+  <b>Apri Pandu Wicaksono</b><br>
+  <b>Rangga Pradarrell Fathi</b>
+</p>
+
+<br>
+
+<h1 align="center">LABORATORIUM HIGH PERFORMANCE</h1>
+<h1 align="center">FAKULTAS INFORMATIKA</h1>
+<h1 align="center">UNIVERSITAS TELKOM PURWOKERTO</h1>
+<h1 align="center">TAHUN 2026</h1>
+
+<hr>
+
+## DASAR TEORI
+
+Laravel merupakan framework PHP modern yang menggunakan arsitektur MVC (Model-View-Controller) untuk membangun aplikasi web secara terstruktur dan efisien. Dengan konsep ini, pengelolaan kode menjadi lebih rapi karena setiap bagian aplikasi memiliki tanggung jawab masing-masing, seperti pengolahan data, tampilan, dan logika program.
+
+Pada project web profile ini, Laravel digunakan sebagai backend untuk mengelola data seperti informasi diri, daftar skill, dan project. Data tersebut disimpan di dalam database dan diakses melalui Model, kemudian diproses oleh Controller sebelum ditampilkan ke pengguna melalui View.
+
+Selain itu, project ini memanfaatkan API (Application Programming Interface) yang dibuat menggunakan Laravel. API berfungsi sebagai penghubung antara backend dan frontend, sehingga data profile, skill, dan project tidak ditampilkan secara langsung, melainkan diambil terlebih dahulu dari server.
+
+Untuk meningkatkan interaktivitas, digunakan teknologi AJAX (Asynchronous JavaScript and XML) dalam pengambilan data. Dengan AJAX, halaman web dapat menampilkan atau memperbarui data tanpa perlu melakukan reload halaman.
+
+Laravel juga menyediakan fitur migration dan seeder yang digunakan untuk mengatur struktur database serta mengisi data awal.
+
+Dengan kombinasi Laravel, API, dan AJAX, web profile yang dibuat mampu menampilkan informasi secara dinamis serta menyediakan dashboard admin untuk mengelola konten.
+
+---
+
+## SOURCE CODE
+
+Source code untuk pengerjaan project PORTOFOLIO secara lengkap dapat dilihat pada repositori dan folder proyek aplikasi ini, khususnya berada di dalam folder /portfolio.
+
+### login.blade.php
+
+```
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -176,7 +249,13 @@
 
 </body>
 </html>
+
+
+```
+
 ### home.blade.php
+
+```
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -250,7 +329,14 @@
     <script src="/js/portfolio.js"></script>
 </body>
 </html>
+
+
+```
+
+
 ### admin.blade.php
+
+```
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -311,26 +397,49 @@
     <script src="/js/admin.js"></script>
 </body>
 </html>
-## OUTPUT ### Login <p align="center"> <img src="asset/login.png" width="800"> </p> ### Landing Page <p align="center"> <img src="asset/landing-page1.png" width="800"> </p> <p align="center"> <img src="asset/landing-page2.png" width="800"> </p> <p align="center"> <img src="asset/landing-page3.png" width="800"> </p> ### Admin <p align="center"> <img src="asset/admin1.png" width="800"> </p> <p align="center"> <img src="asset/admin2.png" width="800"> </p> <p align="center"> <img src="asset/admin3.png" width="800"> </p> <p align="center"> <img src="asset/admin4.png" width="800"> </p>
+
+
 ```
 
-### Output 
-Output program menampilkan sebuah tabel sederhana yang berada di tengah halaman. Tabel tersebut memiliki 3 kolom, yaitu Nama Lengkap, Kota Kelahiran, dan Age, serta berisi 3 baris data.
 
-<img src="output.png">
+## Output 
 
-### Pembahasan Source Code
-Program ini dibuat menggunakan HTML untuk menampilkan sebuah tabel sederhana yang berisi data nama, kota kelahiran, dan usia. Struktur dasar dokumen HTML diawali dengan <!DOCTYPE html> yang berfungsi sebagai deklarasi bahwa file menggunakan standar HTML5, sehingga browser dapat menampilkan halaman dengan benar. 
-Tag <html> merupakan elemen utama yang membungkus seluruh isi dokumen HTML. Di dalamnya terdapat dua bagian utama, yaitu <head> dan <body>. Bagian <head> digunakan untuk menyimpan informasi yang tidak ditampilkan langsung di halaman, seperti judul halaman yang dituliskan dalam tag <title>. Judul tersebut akan muncul pada tab browser. 
-Bagian <body> merupakan bagian utama yang berisi semua elemen yang akan ditampilkan kepada pengguna. Pada program ini, digunakan beberapa tag <br> untuk memberikan jarak atau spasi ke bawah agar tampilan tabel tidak berada terlalu atas, sehingga terlihat lebih rapi di tengah halaman secara vertikal. 
-Untuk mengatur posisi tabel agar berada di tengah secara horizontal, digunakan tag <center>. Tag ini berfungsi untuk menempatkan elemen di tengah halaman, meskipun dalam praktik modern biasanya digantikan dengan CSS. 
-Pembuatan tabel dilakukan dengan menggunakan tag <table>. Pada tag ini terdapat atribut border="1" yang berfungsi untuk menampilkan garis pada tabel sehingga batas antar sel terlihat jelas. Selain itu, digunakan atribut cellspacing="0" untuk menghilangkan jarak antar sel, sehingga garis tabel tampak menyatu dan lebih rapi. 
-Di dalam tabel, digunakan tag <tr> (table row) untuk membuat baris. Baris pertama digunakan sebagai header tabel yang berisi judul kolom. Untuk membuat judul kolom digunakan tag <th> (table header), yaitu "Nama Lengkap", "Kota Kelahiran", dan "Age". Tag <th> secara otomatis membuat teks menjadi tebal dan berada di tengah. 
-Baris berikutnya digunakan untuk menampilkan data. Setiap data dimasukkan menggunakan tag <td> (table data). Pada program ini terdapat tiga baris data, yaitu: 
-Imelda, Pati, 20 
-Fajar, Purwokerto, 21 
-Crisyanti, Semarang, 28 
-Setiap baris data dipisahkan menggunakan tag <tr>, sehingga tabel tersusun secara terstruktur dalam bentuk baris dan kolom. Secara keseluruhan, program ini berhasil menampilkan tabel sederhana yang berisi data identitas dengan rapi. Meskipun tidak menggunakan CSS, tampilan tetap dapat diatur dengan memanfaatkan tag HTML dasar seperti <center> dan <br>. Program ini menunjukkan pemahaman dasar dalam penggunaan struktur HTML dan pembuatan tabel.
+### Login
+
+<p align="center"> 
+    <img src="asset/login.png" width="800"> 
+</p>
+
+### Landing Page
+
+<p align="center"> 
+    <img src="asset/landing-page1.png" width="800"> 
+</p>
+
+<p align="center"> 
+    <img src="asset/landing-page2.png" width="800"> 
+</p>
+
+<p align="center"> 
+    <img src="asset/landing-page3.png" width="800"> 
+</p>
+
+### Admin 
+
+<p align="center"> 
+    <img src="asset/admin1.png" width="800"> 
+</p>
+
+<p align="center"> 
+    <img src="asset/admin1.png" width="800"> 
+</p>
+
+<p align="center"> 
+    <img src="asset/admin1.png" width="800"> 
+</p>
+
+## PEMBAHASAN SOURCE CODE
+
 
 ### Kesimpulan
 Berdasarkan hasil praktikum yang telah dilakukan, dapat disimpulkan bahwa HTML mampu digunakan untuk membuat tampilan halaman web sederhana, khususnya dalam menampilkan data berbentuk tabel. Pada program yang dibuat, data berupa nama, kota kelahiran, dan usia berhasil ditampilkan dengan baik menggunakan tabel. Selain itu, meskipun tidak menggunakan CSS, tampilan tetap dapat diatur agar terlihat lebih rapi dengan memanfaatkan tag <center> untuk penempatan di tengah dan <br> untuk memberikan jarak antar elemen. Dengan demikian, praktikum ini membantu dalam memahami dasar penggunaan HTML, khususnya dalam pembuatan tabel serta pengaturan tampilan sederhana. Hasil yang diperoleh sudah sesuai dengan tujuan praktikum, yaitu menampilkan data dalam bentuk tabel secara jelas dan terorganisir. 
