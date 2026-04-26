@@ -438,12 +438,94 @@ Source code untuk pengerjaan project PORTOFOLIO secara lengkap dapat dilihat pad
     <img src="asset/admin3.png" width="800"> 
 </p>
 
-<p align="center"> 
-    <img src="asset/admin4.png" width="800"> 
-</p>
 
 ## PEMBAHASAN SOURCE CODE
 
+### 1. 'login.blade.php'
+
+File 'login.blade.php' digunakan sebagai halaman login admin sebelum masuk ke dashboard. Pada halaman ini terdapat form login yang berisi input email dan password. Form tersebut menggunakan method 'POST' dan diarahkan ke 'route /login'.
+
+Bagian '@csrf' digunakan sebagai keamanan bawaan Laravel agar form terlindungi dari serangan CSRF. Jika login gagal, sistem akan menampilkan pesan error melalui 'session('error')'.
+
+Tampilan halaman login dibuat langsung menggunakan CSS internal. Desainnya menggunakan warna dominan pink muda, card login di tengah halaman, serta tombol login yang disesuaikan dengan tema web portfolio. Terdapat juga tombol Kembali ke Portfolio yang mengarahkan pengguna kembali ke halaman utama.
+
+### 2. 'home.blade.php'
+
+File 'home.blade.php' merupakan halaman utama atau landing page dari web portfolio. Halaman ini menampilkan informasi pribadi, data diri, skill, project, dan kontak.
+
+Pada bagian awal terdapat navbar yang berisi menu navigasi seperti Home, About, Skills, Projects, Contact, dan Admin. Bagian hero digunakan untuk menampilkan nama, role, deskripsi, dan foto profil.
+
+Data pada halaman ini tidak ditulis langsung secara statis, tetapi ditampilkan menggunakan elemen dengan 'id', seperti:
+
+```
+
+<h1 id="profileName">Memuat data...</h1>
+<h3 id="profileRole"></h3>
+<p id="profileDescription"></p>
+
+```
+ID tersebut nantinya akan diisi secara otomatis melalui file JavaScript 'portfolio.js' dengan mengambil data dari backend menggunakan AJAX/API.
+
+Selain itu, terdapat bagian:
+
+- 'profileNim' untuk menampilkan NIM
+- 'profileEmail' untuk menampilkan email
+- 'profilePhone' untuk menampilkan nomor telepon
+- 'profileAddress' untuk menampilkan alamat
+- 'skillList' untuk menampilkan daftar skill
+- 'projectList' untuk menampilkan daftar project
+
+### 3. 'admin.blade.php'
+
+File 'admin.blade.php' digunakan sebagai halaman dashboard admin. Halaman ini berfungsi untuk mengelola seluruh konten yang tampil pada landing page.
+
+Pada halaman admin terdapat tiga bagian utama, yaitu:
+
+#### A. Edit Data Diri
+
+Bagian ini digunakan untuk mengubah informasi profil seperti:
+
+- nama lengkap
+- NIM
+- role atau bidang
+- deskripsi singkat
+- email
+- nomor HP
+- alamat
+- path foto profil
+
+Form ini memiliki 'id="profileForm"', sehingga proses penyimpanan datanya dilakukan melalui JavaScript pada file 'admin.js'.
+
+#### B. Kelola Skill
+
+Bagian ini digunakan untuk menambah dan mengedit skill. Form skill memiliki input nama skill dan level skill dari 1 sampai 100. Data skill yang sudah tersimpan akan ditampilkan pada elemen:
+
+```
+
+<div id="adminSkillList" class="admin-list"></div>
+
+```
+Elemen tersebut akan diisi secara otomatis melalui AJAX.
+
+
+#### C. Kelola Project
+
+Bagian ini digunakan untuk menambah dan mengedit data project. Form project memiliki input judul project, deskripsi project, dan link project. Daftar project yang sudah dibuat akan ditampilkan pada:
+
+```
+<div id="adminProjectList" class="admin-list"></div>
+
+```
+Sama seperti skill, data project juga dikelola menggunakan JavaScript dan API Laravel.
+
+### 4. Penggunaan AJAX
+
+Pada project ini, data tidak ditampilkan langsung dari file Blade, tetapi diambil dari backend menggunakan JavaScript. File 'portfolio.js' digunakan untuk menampilkan data pada landing page, sedangkan 'admin.js' digunakan untuk mengelola data pada dashboard admin.
+
+Dengan AJAX, halaman tidak perlu melakukan reload ketika mengambil atau memperbarui data. Hal ini membuat web portfolio menjadi lebih interaktif dan sesuai dengan konsep aplikasi dinamis.
+
 
 ### Kesimpulan
-Berdasarkan hasil praktikum yang telah dilakukan, dapat disimpulkan bahwa HTML mampu digunakan untuk membuat tampilan halaman web sederhana, khususnya dalam menampilkan data berbentuk tabel. Pada program yang dibuat, data berupa nama, kota kelahiran, dan usia berhasil ditampilkan dengan baik menggunakan tabel. Selain itu, meskipun tidak menggunakan CSS, tampilan tetap dapat diatur agar terlihat lebih rapi dengan memanfaatkan tag <center> untuk penempatan di tengah dan <br> untuk memberikan jarak antar elemen. Dengan demikian, praktikum ini membantu dalam memahami dasar penggunaan HTML, khususnya dalam pembuatan tabel serta pengaturan tampilan sederhana. Hasil yang diperoleh sudah sesuai dengan tujuan praktikum, yaitu menampilkan data dalam bentuk tabel secara jelas dan terorganisir. 
+Secara keseluruhan, source code project ini terbagi menjadi tiga tampilan utama, yaitu halaman login, landing page, dan dashboard admin. Halaman login digunakan untuk akses admin, halaman landing page digunakan untuk menampilkan data portfolio, sedangkan dashboard admin digunakan untuk mengelola data diri, skill, dan project.
+
+Project ini menerapkan konsep Laravel Blade sebagai tampilan, JavaScript sebagai penghubung AJAX, dan API Laravel sebagai backend untuk mengelola data secara dinamis.
