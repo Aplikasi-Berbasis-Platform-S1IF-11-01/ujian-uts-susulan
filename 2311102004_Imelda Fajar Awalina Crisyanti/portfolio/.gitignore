@@ -1,0 +1,6 @@
+portfolio/vendor/
+portfolio/node_modules/
+portfolio/public/build/
+portfolio/storage/
+portfolio/.env
+portfolio/bootstrap/cache/
