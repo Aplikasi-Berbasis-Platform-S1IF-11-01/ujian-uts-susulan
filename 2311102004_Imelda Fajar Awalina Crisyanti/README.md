@@ -525,7 +525,7 @@ Pada project ini, data tidak ditampilkan langsung dari file Blade, tetapi diambi
 Dengan AJAX, halaman tidak perlu melakukan reload ketika mengambil atau memperbarui data. Hal ini membuat web portfolio menjadi lebih interaktif dan sesuai dengan konsep aplikasi dinamis.
 
 
-### Kesimpulan
+## KESIMPULAN 
 Secara keseluruhan, source code project ini terbagi menjadi tiga tampilan utama, yaitu halaman login, landing page, dan dashboard admin. Halaman login digunakan untuk akses admin, halaman landing page digunakan untuk menampilkan data portfolio, sedangkan dashboard admin digunakan untuk mengelola data diri, skill, dan project.
 
 Project ini menerapkan konsep Laravel Blade sebagai tampilan, JavaScript sebagai penghubung AJAX, dan API Laravel sebagai backend untuk mengelola data secara dinamis.
