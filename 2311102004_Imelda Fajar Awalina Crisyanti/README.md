@@ -431,11 +431,15 @@ Source code untuk pengerjaan project PORTOFOLIO secara lengkap dapat dilihat pad
 </p>
 
 <p align="center"> 
-    <img src="asset/admin1.png" width="800"> 
+    <img src="asset/admin2.png" width="800"> 
 </p>
 
 <p align="center"> 
-    <img src="asset/admin1.png" width="800"> 
+    <img src="asset/admin3.png" width="800"> 
+</p>
+
+<p align="center"> 
+    <img src="asset/admin4.png" width="800"> 
 </p>
 
 ## PEMBAHASAN SOURCE CODE
