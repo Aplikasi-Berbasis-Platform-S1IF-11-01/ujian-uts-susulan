@@ -342,9 +342,7 @@ Sistem penyimpanan berkas juga dikonfigurasi menggunakan fitur filesystem Larave
 ---
 ## E. Kesimpulan
 
-Kesimpulan dari proyek pengembangan portofolio dinamis ini adalah keberhasilan pengimplementasian integrasi antara framework Laravel dengan teknik komunikasi data asinkron (AJAX). Melalui proyek ini, dapat dibuktikan bahwa penggunaan Fetch API mampu meningkatkan kualitas antarmuka pengguna menjadi lebih responsif dan interaktif karena proses pengambilan data, baik dari database internal MySQL maupun dari pihak ketiga seperti GitHub API, dapat dilakukan secara latar belakang tanpa mengganggu alur navigasi halaman.
-
-Selain itu, penerapan arsitektur Model-View-Controller (MVC) memberikan kemudahan dalam pengelolaan konten melalui panel admin yang terpusat. Hal ini menunjukkan bahwa sistem tidak hanya berfungsi sebagai media presentasi statis, tetapi juga sebagai aplikasi web fungsional yang memiliki manajemen data yang baik. Secara keseluruhan, tugas UTS ini berhasil memenuhi standar pengembangan web modern dengan menggabungkan aspek keamanan data, efisiensi performa melalui API, dan estetika desain yang adaptif.
+Implementasi arsitektur Laravel yang dikombinasikan dengan komunikasi data asinkron menjadi kunci keberhasilan dalam membangun portofolio dinamis ini. Dengan memanfaatkan Fetch API, sistem mampu menyajikan data dari berbagai sumber secara latar belakang, sehingga menghasilkan alur navigasi yang lebih halus. Dukungan pola MVC mempermudah pengelolaan data proyek melalui dashboard admin, memberikan fleksibilitas lebih dibandingkan web statis konvensional. Proyek ini merupakan perwujudan dari praktik web modern yang mengedepankan sinkronisasi data yang cepat, keamanan yang terjaga, dan desain yang responsif.
 ---
 
 ## Referensi
