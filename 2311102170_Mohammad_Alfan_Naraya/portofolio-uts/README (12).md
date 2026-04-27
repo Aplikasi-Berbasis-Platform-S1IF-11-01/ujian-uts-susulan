@@ -4,14 +4,14 @@
   <br />
   <h3>UTS <br> Web Profile </h3>
   <br />
-  <img src="assets/logo.png" alt="Logo" width="300">
+  <img src="assets/logo.jpeg" alt="Logo" width="300">
   <br />
   <br />
   <br />
   <h3>Disusun Oleh :</h3>
   <p>
-    <strong>Kanasya Abdi Aziz</strong><br>
-    <strong>2311102140</strong><br>
+    <strong>Mohammad Alfan Naraya</strong><br>
+    <strong>2311102170</strong><br>
     <strong>S1 IF-11-01</strong>
   </p>
   <br />
@@ -64,78 +64,113 @@ Meskipun data profil bersifat publik, Laravel menyediakan Middleware untuk melin
 
 ### 1. Sourcecode routes/web.php
 ```php
-<?php
-
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PortfolioController;
 use Illuminate\Support\Facades\Route;
 
-// Pastikan ini memanggil 'landing' bukan 'welcome' kalau kodenya di landing.blade.php
-Route::get('/', function () { 
-    return view('landing'); 
+// Rute untuk Halaman Utama (Portfolio)
+Route::get('/', function () {
+    return view('welcome');
 });
 
-// Route API untuk AJAX
-Route::get('/api/profile', [ProfileController::class, 'getProfile']);
+// Rute API untuk mengambil data Profile, Skill, dan Project (AJAX)
+Route::get('/api/data-portfolio', [PortfolioController::class, 'getApiData']);
 
-// Route Admin
-Route::get('/admin', [ProfileController::class, 'adminDashboard']);
-Route::post('/admin/update', [ProfileController::class, 'update']);
+// Rute Dashboard Admin (Hanya bisa diakses setelah Login)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [PortfolioController::class, 'index'])->name('dashboard');
+    Route::post('/profile/update', [PortfolioController::class, 'updateProfile'])->name('profile.update');
+    // ... rute untuk CRUD Skill dan Project
+});
+
+require __DIR__.'/auth.php';
 ```
 
 ### Penjelasan
 
-Kode di atas merupakan konfigurasi alur navigasi aplikasi pada file web.php yang menggunakan framework Laravel untuk mengatur interaksi antara pengguna dan server. Pada bagian awal, terdapat rute utama yang mengarahkan pengguna ke halaman depan (landing page) melalui view('landing'), sehingga saat alamat website diakses, tampilan portofolio langsung muncul sebagai antarmuka utama. Untuk mendukung fitur dinamis tanpa muat ulang halaman, kode ini menyediakan rute API /api/profile yang terhubung dengan ProfileController melalui metode getProfile. Jalur ini berfungsi sebagai penyedia data berformat JSON yang nantinya akan ditarik oleh JavaScript menggunakan teknik AJAX untuk menampilkan informasi profil secara otomatis.
-
-Selain mengatur tampilan publik, kode tersebut juga mendefinisikan rute untuk kebutuhan manajerial melalui jalur /admin. Rute ini menggunakan metode GET untuk menampilkan halaman dasbor admin agar pengguna dapat melihat data saat ini, serta metode POST pada jalur /admin/update yang bertugas memproses pengiriman data formulir saat admin melakukan pembaruan informasi profil. Secara keseluruhan, konfigurasi rute ini menciptakan sistem yang terintegrasi antara halaman publik yang interaktif, penyedia data berbasis API, dan panel kendali admin untuk pengelolaan konten secara terpusat.
+File routes/web.php berfungsi sebagai pengatur lalu lintas utama yang menentukan bagaimana aplikasi merespons setiap permintaan URL dari pengguna. Di dalam file ini, didefinisikan rute utama yang menampilkan halaman portofolio kepada pengunjung serta rute API khusus yang menyediakan data dalam format JSON untuk diproses secara dinamis oleh AJAX. Selain itu, terdapat pengelompokan rute menggunakan middleware autentikasi yang menjamin keamanan halaman dashboard, sehingga hanya pengguna terdaftar yang dapat mengelola data profil, keahlian, dan proyek. Integrasi dengan sistem autentikasi bawaan Laravel juga diterapkan melalui pemanggilan file rute tambahan untuk memastikan seluruh fungsi manajemen akun berjalan dengan baik.
 
 ### 2. Sourcecode ProfileController.php
 ```php
 <?php
 
-namespace App\Http\Controllers; // Pastikan namespace-nya benar
+namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use App\Models\Skill;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class ProfileController extends Controller
+class PortfolioController extends Controller
 {
-    public function getProfile() {
-        $profile = Profile::first();
-        return response()->json($profile);
+    /**
+     * Menampilkan halaman Dashboard Admin dengan data Profile
+     */
+    public function index()
+    {
+        $profile = Profile::first(); // Mengambil data profile pertama
+        return view('dashboard', compact('profile'));
     }
 
-    public function adminDashboard() {
-        $profile = Profile::first();
-        return view('admin', compact('profile'));
+    /**
+     * Menyediakan data JSON untuk dikonsumsi oleh AJAX di halaman depan
+     */
+    public function getApiData()
+    {
+        return response()->json([
+            'profile'  => Profile::first(),
+            'skills'   => Skill::all(),
+            'projects' => Project::all(),
+        ]);
     }
 
-    public function update(Request $request) {
-        $profile = Profile::first();
-        $data = $request->only(['nama', 'alamat', 'email', 'instagram', 'deskripsi']);
-        
-        // Simpan skills sebagai JSON string
-        $data['skills'] = json_encode(explode(',', $request->skills));
+    /**
+     * Memperbarui data profil dan menangani upload foto
+     */
+    public function updateProfile(Request $request)
+    {
+        $profile = Profile::first() ?? new Profile();
 
+        // Validasi input
+        $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        // Logika Upload Foto
         if ($request->hasFile('foto')) {
-            if ($profile->foto) Storage::delete('public/'.$profile->foto);
-            $path = $request->file('foto')->store('uploads', 'public');
-            $data['foto'] = $path;
+            // Hapus foto lama jika ada
+            if ($profile->foto) {
+                Storage::disk('public')->delete($profile->foto);
+            }
+            // Simpan foto baru ke folder storage/app/public/fotos
+            $path = $request->file('foto')->store('fotos', 'public');
+            $profile->foto = $path;
         }
 
-        $profile->update($data);
-        return response()->json(['message' => 'Profile updated successfully!']);
+        // Simpan data teks ke database
+        $profile->nama_lengkap = $request->nama_lengkap;
+        $profile->nim = $request->nim;
+        $profile->program_studi = $request->program_studi;
+        $profile->title = $request->title;
+        $profile->short_bio = $request->short_bio;
+        $profile->about_me = $request->about_me;
+        $profile->email = $request->email;
+        $profile->instagram = $request->instagram;
+        $profile->github = $request->github;
+        
+        $profile->save();
+
+        return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
     }
 }
 ```
 
 ### Penjelasan
 
-Kode ProfileController ini adalah inti dari logika aplikasi portofolio kamu, Nas. Berikut adalah penjelasannya dalam bentuk paragraf untuk laporan UTS kamu:
+PortfolioController.php berfungsi sebagai pusat kendali yang mengatur alur data antara database dan tampilan antarmuka. Melalui fungsi index(), controller ini memuat data profil ke halaman dashboard admin, sementara fungsi getApiData() bertugas menyediakan seluruh informasi profil, skill, dan project dalam format JSON untuk diproses secara dinamis oleh AJAX di halaman depan.
 
-ProfileController bertugas sebagai pengendali utama yang mengelola seluruh data profil dalam aplikasi, mulai dari penyajian data untuk pengunjung hingga pengelolaan data oleh admin. Di dalamnya terdapat fungsi getProfile yang berfungsi mengambil baris pertama data dari tabel profiles melalui model Eloquent, lalu mengirimkannya kembali dalam format JSON sebagai respon untuk diproses oleh JavaScript (AJAX) di halaman depan. Selain itu, controller ini menyediakan fungsi adminDashboard yang bertugas menyiapkan antarmuka panel kendali dengan mengirimkan data profil yang ada ke dalam view admin menggunakan fungsi compact.
-
-Fungsi paling kompleks dalam controller ini adalah update, yang menangani pembaruan informasi profil melalui permintaan (request) dari admin. Kode ini secara cerdas mengolah data keahlian (skills) yang awalnya berupa teks biasa menjadi format JSON string agar dapat disimpan dengan rapi di database. Tidak hanya itu, fungsi ini juga dilengkapi dengan logika manajemen file yang cukup baik; jika admin mengunggah foto baru, sistem akan menghapus foto lama di penyimpanan server menggunakan Storage::delete sebelum menyimpan foto baru ke dalam folder publik. Setelah seluruh proses pembaruan data selesai, controller akan memberikan respon balik berupa pesan sukses dalam format JSON sebagai konfirmasi bahwa data telah berhasil diperbarui di database.
+Logika utama pembaruan data terletak pada fungsi updateProfile(), yang menangani validasi input sekaligus manajemen berkas foto profil. Sistem secara otomatis mengelola penyimpanan dengan menghapus foto lama dan menggantinya dengan berkas baru di direktori publik menggunakan storage linking. Setelah seluruh data teks dan jalur file divalidasi, controller akan menyimpan perubahan ke database MySQL dan memberikan umpan balik berupa pesan sukses kepada pengguna.
 
 ### 3. Sourcecode Profile.php
 ```php
@@ -143,20 +178,33 @@ Fungsi paling kompleks dalam controller ini adalah update, yang menangani pembar
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Profile extends Model
 {
-    // Tambahkan ini! Ini kunci agar data bisa masuk
-    protected $fillable = ['nama', 'alamat', 'email', 'instagram', 'deskripsi', 'foto', 'skills'];
+    use HasFactory;
+
+    protected $table = 'profiles';
+
+    protected $fillable = [
+        'nama_lengkap',
+        'nim',
+        'program_studi',
+        'title',
+        'short_bio',
+        'about_me',
+        'foto',
+        'email',
+        'instagram',
+        'github',
+    ];
 }
 ```
 
 ### Penjelasan
 
-File Profile.php merupakan sebuah Model dalam arsitektur Laravel yang berfungsi sebagai representasi dari tabel profiles di dalam database MySQL. Model ini menjadi jembatan utama yang memungkinkan aplikasi berinteraksi dengan data, seperti mengambil informasi untuk ditampilkan di portofolio maupun memperbarui data melalui panel admin menggunakan fitur Eloquent ORM. Dengan menggunakan Model, kita tidak perlu lagi menulis kueri SQL manual yang rumit karena Laravel menyediakan fungsi-fungsi bawaan untuk mengelola record data secara lebih mudah dan bersih.
-
-Salah satu bagian terpenting dalam kode ini adalah properti $fillable, yang merupakan fitur keamanan Mass Assignment Protection pada Laravel. Properti ini secara eksplisit mendefinisikan kolom-kolom mana saja, seperti nama, alamat, email, hingga skills, yang diizinkan untuk diisi datanya secara massal. Tanpa adanya deklarasi $fillable, sistem keamanan Laravel akan memblokir perintah pengisian data (seperti saat proses seeding atau pengiriman formulir update), sehingga keberadaan baris kode ini menjadi kunci utama agar data profil dapat berhasil masuk dan tersimpan dengan aman ke dalam database.
+File Profile.php merupakan sebuah Model yang merepresentasikan struktur tabel profiles di dalam database MySQL. Kode ini berfungsi sebagai jembatan Object-Relational Mapping (ORM) yang memungkinkan aplikasi berinteraksi dengan data profil tanpa harus menulis query SQL secara manual. Properti $fillable di dalam kelas ini berperan sebagai pengaman sistem (Mass Assignment protection), yang secara spesifik menentukan kolom mana saja yang diizinkan untuk diisi atau diperbarui melalui input form. Dengan adanya model ini, proses pengambilan, penyimpanan, dan manipulasi data identitas diri, informasi akademik, hingga tautan media sosial dapat dilakukan secara lebih terstruktur dan aman.
 
 ### 4. Sourcecode Migration (2026_01_04_20_131949_create_profile_table.php)
 ```php
@@ -172,13 +220,16 @@ return new class extends Migration
     {
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('alamat');
-            $table->string('email');
-            $table->string('instagram');
-            $table->text('deskripsi');
+            $table->string('nama_lengkap');
+            $table->string('nim')->nullable();
+            $table->string('program_studi')->nullable();
+            $table->string('title')->nullable();
+            $table->string('short_bio')->nullable();
+            $table->text('about_me')->nullable();
             $table->string('foto')->nullable();
-            $table->text('skills'); 
+            $table->string('email')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('github')->nullable();
             $table->timestamps();
         });
     }
@@ -191,9 +242,7 @@ return new class extends Migration
 ```
 ### Penjelasan
 
-Kode di atas merupakan file Migration yang berfungsi sebagai cetak biru (blueprint) untuk membangun struktur tabel di dalam database MySQL melalui sistem Laravel. Di dalam metode up(), terdapat perintah Schema::create yang secara otomatis akan membuat tabel baru bernama profiles dengan berbagai spesifikasi kolom yang dibutuhkan, mulai dari tipe data string untuk informasi singkat seperti nama dan email, hingga tipe data text untuk informasi yang lebih panjang seperti deskripsi diri dan daftar keahlian. Penggunaan fungsi timestamps() juga sangat penting karena akan secara otomatis menciptakan kolom created_at dan updated_at yang berguna untuk mencatat waktu kapan data tersebut dibuat atau terakhir kali diperbarui.
-
-Selain mendefinisikan pembuatan tabel, file ini juga menyertakan metode down() yang berfungsi sebagai fitur pembatalan (rollback) untuk menghapus tabel profiles jika sewaktu-waktu terjadi kesalahan atau perubahan desain database. Fitur migrasi ini sangat krusial dalam pengerjaan proyek UTS, karena memungkinkan sinkronisasi struktur database antar anggota tim atau lingkungan server yang berbeda secara konsisten hanya dengan menjalankan perintah terminal. Dengan adanya file ini, integritas data profil kamu tetap terjaga karena setiap kolom telah diatur tipe datanya secara spesifik, termasuk kolom foto yang diatur bersifat nullable agar aplikasi tidak error meskipun pengguna belum mengunggah gambar.
+File migrasi ini berfungsi sebagai cetak biru (blueprint) untuk membangun struktur tabel profiles secara otomatis di dalam database MySQL. Melalui metode up(), sistem mendefinisikan berbagai tipe data kolom, seperti string untuk informasi singkat dan text untuk deskripsi profil yang lebih panjang, serta menyertakan atribut nullable() agar pengisian data bersifat opsional. Penggunaan migrasi ini memastikan konsistensi struktur database di seluruh lingkungan pengembangan, sehingga proses pembuatan tabel dapat dilakukan dengan cepat dan akurat hanya melalui perintah baris kode tanpa perlu melakukan konfigurasi manual pada phpMyAdmin.
 
 ### 5. Sourcecode ProfileSeeder.php
 ```php
@@ -201,36 +250,23 @@ Selain mendefinisikan pembuatan tabel, file ini juga menyertakan metode down() y
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Profile;
+use Illuminate\Database\Seeder;
 
 class ProfileSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Menghapus data lama jika ada agar tidak double
-        Profile::truncate();
-
         Profile::create([
-            'nama' => 'Kanasya Abdi Aziz',
-            'alamat' => 'Purwokerto, Jawa Tengah',
-            'email' => 'kanasyaabdiaziz@gmail.com',
-            'instagram' => '@k.asyaaa_',
-            'deskripsi' => 'Halo! Saya Kanasya Abdi Aziz, mahasiswa Informatika Telkom University angkatan 23. Saya memiliki passion kuat di bidang Front-end Development, menciptakan antarmuka web yang interaktif, bersih, dan fungsional. Selain coding, saya juga mendalami dunia Cyber Security.',
-            'skills' => json_encode([
-                'HTML5', 
-                'CSS3', 
-                'JavaScript', 
-                'PHP', 
-                'Laravel', 
-                'Tailwind CSS', 
-                'Bootstrap', 
-                'Cyber Security'
-            ]),
-            'foto' => null, // Biarkan null dulu, nanti upload lewat Dashboard Admin
+            'nama_lengkap' => 'Mohammad Alfan Naraya',
+            'nim' => '2311102170',
+            'program_studi' => 'S1 Informatika',
+            'title' => 'Fullstack Developer Enthusiast',
+            'short_bio' => 'Mahasiswa Informatika yang berfokus pada pengembangan web.',
+            'about_me' => 'Saya adalah mahasiswa di Telkom University Purwokerto yang memiliki minat besar dalam Laravel dan Cybersecurity.',
+            'email' => 'alfan@example.com',
+            'instagram' => 'https://instagram.com/alfan',
+            'github' => 'https://github.com/alfan',
         ]);
     }
 }
@@ -238,203 +274,48 @@ class ProfileSeeder extends Seeder
 
 ### Penjelasan
 
-Kode ProfileSeeder ini memiliki peran yang sangat vital dalam fase pengembangan aplikasi, karena berfungsi sebagai pengisi data otomatis (automatic data filler) ke dalam database. Dalam konteks proyek UTS kamu, seeder ini digunakan untuk memasukkan data identitas diri secara instan tanpa harus mengetiknya secara manual melalui database manager seperti phpMyAdmin. Di dalam metode run(), terdapat perintah Profile::truncate() yang berfungsi untuk membersihkan data lama terlebih dahulu, sehingga saat kamu menjalankan proses seeding ulang, tidak akan terjadi penumpukan data ganda yang bisa merusak tampilan portofolio.
-
-Selain efisiensi, kode ini juga menunjukkan cara penanganan data yang terstruktur dengan menggunakan fungsi json_encode untuk kolom keahlian (skills). Hal ini memungkinkan daftar kemampuan teknis kamu disimpan dalam satu kolom database sebagai format teks, namun tetap bisa diolah kembali menjadi elemen-elemen terpisah saat dirender di halaman depan. Dengan adanya file seeder ini, pengembang dapat dengan mudah mengembalikan atau memulihkan data awal profil hanya melalui satu baris perintah di terminal, sehingga mempercepat proses pengujian fitur AJAX dan API yang telah dibangun pada aplikasi portofolio tersebut.
+File ProfileSeeder.php berfungsi untuk melakukan pengisian data otomatis (database seeding) ke dalam tabel profiles saat proses instalasi awal aplikasi. Dengan menggunakan metode run(), pengembang dapat memasukkan data identitas diri standar ke dalam database melalui perintah baris kode tanpa harus mengisinya secara manual satu per satu melalui form. Fasilitas ini sangat berguna dalam tahap pengembangan dan pengujian untuk memastikan bahwa komponen halaman depan website sudah memiliki konten yang dapat ditampilkan segera setelah proses migrasi database selesai dilakukan.
 
 ### 6. Sourcecode landing.blade.php
 ```php
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio | Kanasya Abdi Aziz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        /* Animasi halus saat hover */
-        .repo-card:hover { transform: translateY(-5px); border-color: rgba(34, 211, 238, 0.4); }
-    </style>
-</head>
-<body class="bg-[#0b1120] text-slate-300">
+<section class="hero-gradient min-h-screen flex flex-col items-center justify-center text-white text-center">
+    <div data-aos="fade-up">
+        <img id="display-foto" src="" class="w-44 h-44 rounded-3xl object-cover shadow-2xl hidden">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-4" id="display-nama">Memuat...</h1>
+        <p class="text-xl md:text-2xl font-medium mb-10" id="display-title">Sedang sinkronisasi...</p>
+    </div>
+</section>
 
-    <nav class="fixed w-full z-50 px-6 py-4">
-        <div class="max-w-6xl mx-auto flex justify-between items-center glass-card px-6 py-3 rounded-2xl">
-            <div class="text-white font-bold text-xl tracking-tighter">Kanasya<span class="text-cyan-400">.dev</span></div>
-            <div class="hidden md:flex gap-8 text-sm font-medium">
-                <a href="#" class="hover:text-cyan-400 transition-colors">Home</a>
-                <a href="#about" class="hover:text-cyan-400 transition-colors">About</a>
-                <a href="#projects" class="hover:text-cyan-400 transition-colors">Projects</a>
-                <a href="/admin" class="bg-cyan-500 text-slate-900 px-4 py-1.5 rounded-lg hover:bg-cyan-400 transition-all font-bold">Admin Panel</a>
-            </div>
-        </div>
-    </nav>
-
-    <main class="pt-32 pb-20 px-6">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-16">
-                <div class="relative inline-block mb-8">
-                    <img id="display-foto" src="https://ui-avatars.com/api/?name=Kanasya+Abdi+Aziz&background=0D8ABC&color=fff" 
-                         class="w-40 h-40 rounded-3xl object-cover border-2 border-cyan-500 shadow-2xl shadow-cyan-500/20 rotate-3 hover:rotate-0 transition-transform duration-500">
-                    <div class="absolute -bottom-2 -right-2 bg-cyan-500 text-slate-900 p-2 rounded-xl">
-                        <i class="fas fa-rocket text-sm"></i>
-                    </div>
-                </div>
-                
-                <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight" id="display-nama">Memuat...</h1>
-                <p class="text-cyan-400 text-lg font-medium mb-8 uppercase tracking-[0.2em]" id="display-alamat">Loading Location...</p>
-                
-                <div class="glass-card p-8 rounded-3xl text-left relative overflow-hidden" id="about">
-                    <h3 class="text-white font-bold text-xl mb-4 flex items-center">
-                        <span class="w-8 h-1 bg-cyan-500 rounded-full mr-3"></span> About Me
-                    </h3>
-                    <p class="text-slate-400 leading-relaxed text-lg" id="display-deskripsi">Memuat profil...</p>
-                </div>
-            </div>
-
-            <div class="mt-20">
-                <h3 class="text-center text-white font-bold text-2xl mb-10 tracking-wider">TECHNICAL STACK</h3>
-                <div id="display-skills" class="flex flex-wrap justify-center gap-4">
-                    <p class="text-slate-500 italic">Memuat skills...</p>
-                </div>
-            </div>
-
-            <div class="mt-32" id="projects">
-                <div class="flex flex-col items-center mb-12">
-                    <h3 class="text-white font-bold text-3xl mb-2">GitHub Repositories</h3>
-                    <p class="text-slate-500 text-sm italic">Otomatis sinkron dengan github.com/asya665</p>
-                    <div class="h-1 w-20 bg-cyan-500 mt-4 rounded-full"></div>
-                </div>
-                
-                <div id="github-projects" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="col-span-full text-center py-10">
-                        <i class="fas fa-circle-notch fa-spin text-cyan-500 text-3xl mb-4"></i>
-                        <p class="text-slate-500">Menarik data dari GitHub API...</p>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="mt-32 text-center border-t border-slate-800 pt-10">
-                <div class="flex justify-center gap-6 mb-8 text-2xl">
-                    <a id="link-email" href="#" class="hover:text-cyan-400 transition-all"><i class="fas fa-envelope"></i></a>
-                    <a id="link-ig" href="#" target="_blank" class="hover:text-cyan-400 transition-all"><i class="fab fa-instagram"></i></a>
-                    <a href="https://github.com/asya665" target="_blank" class="hover:text-cyan-400 transition-all"><i class="fab fa-github"></i></a>
-                </div>
-                <p class="text-slate-500 text-sm uppercase tracking-widest">UTS Pemrograman Web - Kanasya Abdi Aziz</p>
-            </footer>
-        </div>
-    </main>
-
-    <script>
-        // 1. Ambil Data Profile dari Backend Laravel
-        async function loadProfile() {
-            try {
-                const response = await fetch('/api/profile');
-                const data = await response.json();
-
-                if (data) {
-                    document.getElementById('display-nama').innerText = data.nama;
-                    document.getElementById('display-alamat').innerText = `Based in ${data.alamat}`;
-                    document.getElementById('display-deskripsi').innerText = data.deskripsi;
-                    document.getElementById('link-email').href = `mailto:${data.email}`;
-                    document.getElementById('link-ig').href = `https://instagram.com/${data.instagram.replace('@', '')}`;
-
-                    if (data.foto) {
-                        document.getElementById('display-foto').src = `/storage/${data.foto}`;
-                    }
-
-                    const skillsArr = JSON.parse(data.skills);
-                    const skillContainer = document.getElementById('display-skills');
-                    skillContainer.innerHTML = '';
-                    skillsArr.forEach(skill => {
-                        const badge = document.createElement('span');
-                        badge.className = 'glass-card px-5 py-2 rounded-xl text-sm font-semibold text-cyan-400 border border-cyan-500/10 hover:bg-cyan-500/5 transition-colors';
-                        badge.innerText = skill;
-                        skillContainer.appendChild(badge);
-                    });
+<script>
+    $(document).ready(function() {
+        AOS.init({ duration: 1000, once: true });
+        $.get('/api/data-portfolio', function(res) {
+            const p = res.profile;
+            if (p) {
+                $('#display-nama').text(p.nama_lengkap);
+                $('#display-title').text(p.title);
+                if (p.foto) {
+                    $('#display-foto').attr('src', '/storage/' + p.foto).removeClass('hidden');
                 }
-            } catch (error) {
-                console.error('Error Profile:', error);
-                document.getElementById('display-nama').innerText = "Gagal Memuat Data";
             }
-        }
-
-        // 2. Ambil Data Repositori dari GitHub API (Username: asya665)
-        const githubUsername = 'asya665'; 
-
-        async function loadGithubRepos() {
-            try {
-                // Menampilkan 6 repo terbaru yang diupdate
-                const response = await fetch(`https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=6`);
-                const repos = await response.json();
-                const container = document.getElementById('github-projects');
-                
-                container.innerHTML = ''; 
-
-                if (repos.length === 0) {
-                    container.innerHTML = '<p class="text-center text-slate-500 col-span-full">Belum ada repositori publik.</p>';
-                    return;
-                }
-
-                repos.forEach(repo => {
-                    container.innerHTML += `
-                        <a href="${repo.html_url}" target="_blank" class="repo-card glass-card p-6 rounded-2xl transition-all duration-300 group">
-                            <div class="flex justify-between items-start mb-4">
-                                <i class="fab fa-github text-2xl text-white group-hover:text-cyan-400 transition-colors"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded">
-                                    ${repo.language || 'Project'}
-                                </span>
-                            </div>
-                            <h4 class="text-white font-bold text-lg mb-2 group-hover:text-cyan-400 transition-colors">${repo.name}</h4>
-                            <p class="text-slate-400 text-sm line-clamp-2 mb-4">
-                                ${repo.description || 'Tidak ada deskripsi untuk repositori ini.'}
-                            </p>
-                            <div class="flex gap-4 text-xs text-slate-500 font-medium">
-                                <span><i class="fas fa-star mr-1 text-yellow-500"></i>${repo.stargazers_count}</span>
-                                <span><i class="fas fa-code-branch mr-1 text-cyan-500"></i>${repo.forks_count}</span>
-                            </div>
-                        </a>
-                    `;
-                });
-            } catch (error) {
-                console.error('Error GitHub:', error);
-                document.getElementById('github-projects').innerHTML = '<p class="text-center text-red-400 col-span-full py-10">Gagal memuat repositori GitHub.</p>';
-            }
-        }
-
-        // Load semuanya saat halaman siap
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProfile();
-            loadGithubRepos();
         });
-    </script>
-</body>
-</html>
+    });
+</script>
 ```
 
 ### Penjelasan
 
-Kode di atas adalah file View (landing.blade.php) yang berfungsi sebagai antarmuka utama (front-end) portofolio kamu. Berikut penjelasannya dalam bentuk paragraf untuk laporan UTS:
-
-Bagian kode ini merupakan lapisan presentasi aplikasi yang dibangun menggunakan Blade Engine Laravel dengan dukungan Tailwind CSS untuk menciptakan desain modern berbasis glassmorphism. Halaman ini dirancang sebagai Single Page Application (SPA) sederhana yang bersifat dinamis, di mana sebagian besar konten tidak ditulis secara manual, melainkan diambil melalui permintaan asinkron menggunakan JavaScript Fetch API. Secara estetika, halaman ini menggunakan skema warna gelap dengan aksen cyan dan tipografi Plus Jakarta Sans untuk memberikan kesan profesional, lengkap dengan fitur responsif yang menyesuaikan tampilan di perangkat mobile maupun desktop.
-
-Hal yang paling krusial dalam kode ini terdapat pada bagian skrip JavaScript-nya, yang menjalankan dua fungsi utama saat halaman dimuat melalui event listener DOMContentLoaded. Fungsi pertama, loadProfile, bertugas mengambil data profil dari API internal Laravel dan melakukan manipulasi DOM untuk merender nama, deskripsi, serta lencana keahlian (skill badges) secara otomatis. Fungsi kedua, loadGithubRepos, berfungsi sebagai integrasi API eksternal yang menarik data langsung dari server GitHub untuk menampilkan repositori terbaru milik pengguna lengkap dengan informasi jumlah star dan bahasa pemrograman. Dengan penggabungan teknik AJAX ini, website dapat menyajikan informasi yang selalu aktual dan interaktif tanpa perlu melakukan muat ulang halaman secara keseluruhan.
+File welcome.blade.php berfungsi sebagai antarmuka utama (Landing Page) yang menyajikan informasi portfolio kepada pengunjung dengan desain modern berbasis Tailwind CSS. Kode ini mengimplementasikan teknik asinkron menggunakan jQuery AJAX untuk menarik data profil, keahlian, dan proyek dari server tanpa harus memuat ulang seluruh halaman, sehingga memberikan pengalaman pengguna yang lebih responsif. Selain itu, integrasi pustaka Animate On Scroll (AOS) diterapkan pada elemen-elemen kunci untuk memberikan efek visual yang dinamis saat pengguna melakukan navigasi ke bawah, sementara sistem manajemen aset Laravel memastikan foto profil dan gambar proyek ditampilkan dengan benar melalui jalur penyimpanan publik.
 
 ---
 
 ## C. Penjelasan Implementasi Sistem
 
-Sistem portofolio dinamis ini diimplementasikan dengan mengadopsi arsitektur Model-View-Controller (MVC) pada framework Laravel yang mengintegrasikan pengolahan data internal dari database MySQL dan data eksternal melalui GitHub API secara sinkron. Pada lapisan basis data, struktur tabel dikelola secara terstruktur melalui Migration untuk menjamin konsistensi skema, sementara pengisian data identitas awal dilakukan secara otomatis menggunakan ProfileSeeder. Data tersebut kemudian direpresentasikan oleh Model Profile yang dilengkapi fitur keamanan Mass Assignment Protection guna menjaga integritas data saat terjadi proses manipulasi. Di sisi server, ProfileController bertindak sebagai otak aplikasi yang menyediakan jalur akses data melalui API Routing, di mana controller ini tidak hanya bertugas mengirimkan data profil dalam format JSON, tetapi juga mengelola logika manajemen file foto dan pengolahan data keahlian yang disimpan dalam format terenkripsi JSON.
+Website portfolio ini dibangun menggunakan arsitektur Model-View-Controller (MVC) yang memisahkan antara logika data, pengaturan rute, dan tampilan antarmuka. Pada sisi backend, sistem menggunakan framework Laravel untuk mengelola database MySQL melalui Eloquent ORM, yang memungkinkan manipulasi data profil dan proyek dilakukan secara aman melalui model. Keamanan akses ke halaman manajemen data dijamin oleh sistem autentikasi Laravel Breeze, yang membatasi hak akses pengubahan konten hanya bagi pengguna yang memiliki kredensial sah melalui sesi login yang terenkripsi.
 
-Ciri khas utama dari implementasi sistem ini terletak pada penggunaan teknik Asynchronous JavaScript and XML (AJAX) melalui Fetch API pada sisi klien yang memungkinkan pertukaran data secara latar belakang. Saat pengguna mengakses halaman Landing Page, skrip JavaScript akan menjalankan permintaan ganda secara asinkron, yaitu ke server internal Laravel untuk mengambil data profil pribadi dan ke GitHub REST API untuk menarik daftar proyek terbaru secara real-time. Mekanisme ini memastikan halaman web selalu menyajikan informasi yang aktual tanpa perlu melakukan muat ulang halaman secara keseluruhan, sehingga meningkatkan efisiensi performa dan pengalaman pengguna.
+Dari sisi antarmuka (frontend), aplikasi ini menerapkan teknik Single Source of Truth di mana halaman utama bersifat dinamis dan tidak menyimpan data secara statis di dalam kode HTML. Proses sinkronisasi data dilakukan menggunakan teknologi AJAX (Asynchronous JavaScript and XML) yang memanggil endpoint API internal pada server untuk mengambil data dalam format JSON. Implementasi ini dikombinasikan dengan Tailwind CSS untuk menghasilkan desain yang responsif dan estetis, serta library AOS (Animate On Scroll) untuk memberikan pengalaman visual yang interaktif bagi pengunjung saat menjelajahi setiap bagian portfolio.
 
-Pada lapisan antarmuka, sistem menggunakan Blade Templating Engine yang dikombinasikan dengan Tailwind CSS untuk menciptakan desain modern berbasis Glassmorphism. Proses penyajian informasi dilakukan melalui teknik rendering dinamis menggunakan manipulasi Document Object Model (DOM), di mana data JSON yang diterima dari API diproses oleh JavaScript untuk mengisi elemen-elemen HTML secara otomatis. Hal ini mencakup transformasi teks penampung menjadi deskripsi diri yang personal serta konversi array data menjadi lencana keahlian yang interaktif, sehingga menciptakan satu kesatuan sistem portofolio yang responsif, fungsional, dan profesional.
+Sistem penyimpanan berkas juga dikonfigurasi menggunakan fitur filesystem Laravel, di mana setiap foto profil atau gambar proyek yang diunggah melalui dashboard admin akan disimpan ke dalam direktori penyimpanan privat dan dihubungkan ke folder publik melalui perintah storage:link. Hal ini memastikan bahwa seluruh aset multimedia dapat diakses secara cepat oleh browser sambil tetap menjaga integritas struktur folder aplikasi. Secara keseluruhan, implementasi ini menghasilkan platform yang tidak hanya fungsional secara teknis, tetapi juga mudah dikelola dan memiliki performa yang optimal.
 
 ---
 
@@ -442,36 +323,22 @@ Pada lapisan antarmuka, sistem menggunakan Blade Templating Engine yang dikombin
 
 ### Halaman Home
 ![Halaman Home](assets/1.png)
-
-Halaman Home ini berfungsi sebagai identitas visual utama yang menyajikan profil profesional secara ringkas dan modern. Menggunakan desain dark mode dengan sentuhan glassmorphism, halaman ini menampilkan inisial pengguna, nama lengkap, dan lokasi domisili. Bagian "About Me" merangkum latar belakang akademik sebagai mahasiswa Informatika serta fokus keahlian di bidang Front-end Development dan Cyber Security dalam satu tampilan yang bersih dan responsif.
-
 ---
 
 ### Halaman About
 ![Halaman About](assets/2.png)
-
-Bagian ini menampilkan Technical Stack dan pengantar GitHub Repositories yang menonjolkan aspek dinamis dari sistem. Daftar keahlian seperti HTML5, Laravel, hingga Cyber Security disajikan dalam bentuk badge interaktif yang datanya ditarik secara asinkron dari database melalui API internal. Di bawahnya, terdapat bagian repositori yang memberikan informasi bahwa daftar proyek akan tersinkronisasi secara otomatis dengan akun GitHub pengguna, menunjukkan kemampuan sistem dalam mengintegrasikan data dari pihak ketiga secara real-time.
 ---
 
 ### Halaman Project
 ![Halaman Project](assets/3.png)
-
-Halaman ini menampilkan GitHub Repositories yang merupakan hasil integrasi langsung dengan GitHub API. Setiap kartu proyek menyajikan informasi real-time seperti nama repositori, deskripsi, bahasa pemrograman yang digunakan, serta jumlah star dan fork. Melalui teknik AJAX, daftar ini secara otomatis diperbarui mengikuti aktivitas pada akun GitHub pengguna, memberikan bukti autentik atas proyek yang telah dikerjakan secara transparan dan dinamis.
-
 ---
 
 ### Halaman Admin
 ![Halaman Edit Admin](assets/4.png)
-
-Halaman Edit Portofolio ini merupakan panel kendali admin yang berfungsi untuk mengelola konten website secara terpusat. Melalui formulir ini, pengguna dapat memperbarui informasi pribadi seperti nama, alamat, daftar keahlian, hingga deskripsi profil secara langsung. Panel ini juga dilengkapi fitur unggah foto untuk memperbarui aspek visual portofolio, di mana setiap perubahan yang disimpan akan langsung memperbarui database dan tercermin pada halaman utama tanpa perlu mengubah kode program.
-
 ---
 
 ### Halaman Sesudah Edit
 ![Halaman Sesudah Edit](assets/5.png)
-
-Halaman ini menunjukkan munculnya notifikasi alert sebagai pesan konfirmasi setelah pengguna melakukan pembaruan data pada panel admin. Notifikasi ini menandakan bahwa proses pengiriman data melalui metode POST telah berhasil diproses oleh server, dan database telah diperbarui secara real-time. Kehadiran pesan sukses ini sangat penting bagi pengalaman pengguna untuk memberikan kepastian bahwa perubahan informasi profil telah tersimpan dengan aman ke dalam sistem.
-
 ---
 ## E. Kesimpulan
 
