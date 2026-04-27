@@ -454,95 +454,23 @@ Route::get('/admin/contact', function () {
 
 ## PENJELASAN SOURCE CODE
 
-### 1. login.blade.php
+### 1. Arsitektur Routing (web.php)
+Dalam perancangan sistem ini, file web.php diimplementasikan sebagai komponen routing utama yang meregulasi seluruh lalu lintas permintaan HTTP (HTTP Requests). Mekanisme ini berfungsi untuk memetakan setiap alamat URL ke fungsi controller yang relevan. Selain pemetaan jalur statis, sistem ini menerapkan middleware 'auth' sebagai protokol autentikasi. Implementasi middleware ini bertujuan untuk membatasi hak akses pengguna, di mana halaman-halaman krusial seperti manajemen data hanya dapat diakses oleh subjek yang telah terverifikasi melalui proses login, guna menjaga integritas dan keamanan data pada sistem.
 
-File 'login.blade.php' digunakan sebagai halaman login admin sebelum masuk ke dashboard. Pada halaman ini terdapat form login yang berisi input email dan password. Form tersebut menggunakan method 'POST' dan diarahkan ke route '/login'.
+### 2. Implementasi Antarmuka Pengguna Utama (welcome.blade.php)
 
-Bagian @csrf digunakan sebagai keamanan bawaan Laravel agar form terlindungi dari serangan CSRF. Jika login gagal, sistem akan menampilkan pesan error melalui 'session('error')'.
+Halaman welcome.blade.php dikembangkan sebagai representasi frontend atau landing page yang berfungsi sebagai media interaksi awal bagi pengguna luar. Secara teknis, file ini memanfaatkan Blade templating engine untuk menyajikan komponen UI yang dinamis dan responsif. Konten yang disajikan mencakup informasi profil personal, deskripsi keahlian, dan ringkasan portofolio. Fokus utama pada tahap ini adalah pengoptimalan pengalaman pengguna (User Experience) melalui tata letak yang bersih, serta penyediaan jalur navigasi menuju sistem manajemen melalui endpoint login yang telah terintegrasi.
 
-Tampilan halaman login dibuat langsung menggunakan CSS internal. Desainnya menggunakan warna dominan pink muda, card login di tengah halaman, serta tombol login yang disesuaikan dengan tema web portfolio. Terdapat juga tombol Kembali ke Portfolio yang mengarahkan pengguna kembali ke halaman utama.
+### 3. Pengembangan Panel Administrasi (dashboard.blade.php)
 
-### 2. home.blade.php
+File dashboard.blade.php merupakan inti dari antarmuka manajemen data atau backend sistem. Dalam pengembangannya, file ini menggunakan teknik template inheritance untuk memastikan konsistensi visual di seluruh modul admin. Secara fungsional, halaman ini berfungsi untuk menampilkan visualisasi data secara real-time yang ditarik dari database melalui controller. Selain berfungsi sebagai pusat kendali (command center), dashboard ini dirancang untuk mempermudah administrator dalam melakukan monitoring data serta manajemen konten secara terpusat dan efisien, selaras dengan prinsip-prinsip Man-Machine Interaction yang intuitif.
 
-File 'home.blade.php' merupakan halaman utama atau landing page dari web portfolio. Halaman ini menampilkan informasi pribadi, data diri, skill, project, dan kontak.
 
-Pada bagian awal terdapat navbar yang berisi menu navigasi seperti Home, About, Skills, Projects, Contact, dan Admin. Bagian hero digunakan untuk menampilkan nama, role, deskripsi, dan foto profil.
+#### 4. Penggunaan AJAX
 
-Data pada halaman ini tidak ditulis langsung secara statis, tetapi ditampilkan menggunakan elemen dengan 'id', seperti:
-
-```
-
-<h1 id="profileName">Memuat data...</h1>
-<h3 id="profileRole"></h3>
-<p id="profileDescription"></p>
-
-```
-
-ID tersebut nantinya akan diisi secara otomatis melalui file JavaScript portfolio.js dengan mengambil data dari backend menggunakan AJAX/API.
-
-Selain itu, terdapat bagian:
-
-'profileNim' untuk menampilkan NIM
-'profileEmail' untuk menampilkan email
-'profilePhone' untuk menampilkan nomor telepon
-'profileAddress' untuk menampilkan alamat
-'skillList' untuk menampilkan daftar skill
-'projectList' untuk menampilkan daftar project
-
-Dengan cara ini, halaman portfolio menjadi lebih dinamis karena data dapat berubah sesuai data yang dikelola dari dashboard admin.
-
-### 3. admin.blade.php
-
-File 'admin.blade.php' digunakan sebagai halaman dashboard admin. Halaman ini berfungsi untuk mengelola seluruh konten yang tampil pada landing page.
-
-Pada halaman admin terdapat tiga bagian utama, yaitu:
-
-#### a. Edit Data Diri
-
-Bagian ini digunakan untuk mengubah informasi profil seperti:
-
-nama lengkap
-NIM
-role atau bidang
-deskripsi singkat
-email
-nomor HP
-alamat
-path foto profil
-
-Form ini memiliki 'id="profileForm"', sehingga proses penyimpanan datanya dilakukan melalui JavaScript pada file 'admin.js'.
-
-#### b. Kelola Skill
-
-Bagian ini digunakan untuk menambah dan mengedit skill. Form skill memiliki input nama skill dan level skill dari 1 sampai 100. Data skill yang sudah tersimpan akan ditampilkan pada elemen:
-
-```
-
-<div id="adminSkillList" class="admin-list"></div>
-
-```
-Elemen tersebut akan diisi secara otomatis melalui AJAX.
-
-##### c. Kelola Project
-
-Bagian ini digunakan untuk menambah dan mengedit data project. Form project memiliki input judul project, deskripsi project, dan link project. Daftar project yang sudah dibuat akan ditampilkan pada:
-
-```
-<div id="adminProjectList" class="admin-list"></div>
-
-```
-
-Sama seperti skill, data project juga dikelola menggunakan JavaScript dan API Laravel.
-
-#### d. Penggunaan AJAX
-
-Pada project ini, data tidak ditampilkan langsung dari file Blade, tetapi diambil dari backend menggunakan JavaScript. File portfolio.js digunakan untuk menampilkan data pada landing page, sedangkan admin.js digunakan untuk mengelola data pada dashboard admin.
-
-Dengan AJAX, halaman tidak perlu melakukan reload ketika mengambil atau memperbarui data. Hal ini membuat web portfolio menjadi lebih interaktif dan sesuai dengan konsep aplikasi dinamis.
+Penggunaan teknologi AJAX dalam sistem ini bertujuan untuk meningkatkan efisiensi pertukaran data antara client-side dan server-side tanpa memerlukan proses pemuatan ulang halaman secara keseluruhan (page refresh). Secara teknis, AJAX bekerja dengan mengirimkan permintaan asinkron di latar belakang, sehingga interaksi pengguna tetap berjalan mulus dan responsif. Dalam konteks aplikasi portofolio ini, mekanisme tersebut diterapkan pada proses manipulasi data, seperti pengiriman formulir atau pembaruan konten secara dinamis. Implementasi ini tidak hanya mengoptimalkan penggunaan bandwidth melalui pengiriman data dalam format JSON, tetapi juga secara signifikan meningkatkan nilai usability sistem dengan mengurangi waktu tunggu pengguna (latency) saat melakukan operasi pada basis data.
 
 
 ## Kesimpulan
 
-Secara keseluruhan, source code project ini terbagi menjadi tiga tampilan utama, yaitu halaman login, landing page, dan dashboard admin. Halaman login digunakan untuk akses admin, halaman landing page digunakan untuk menampilkan data portfolio, sedangkan dashboard admin digunakan untuk mengelola data diri, skill, dan project.
-
-Project ini menerapkan konsep Laravel Blade sebagai tampilan, JavaScript sebagai penghubung AJAX, dan API Laravel sebagai backend untuk mengelola data secara dinamis.
+Pengembangan sistem portofolio berbasis Laravel ini berhasil mengintegrasikan arsitektur MVC untuk menciptakan pengelolaan kode yang modular dan terorganisir. Melalui penerapan middleware pada sistem routing serta penggunaan Blade templating, aplikasi mampu menjamin keamanan data sekaligus menyajikan antarmuka yang dinamis. Selain itu, integrasi teknologi AJAX secara signifikan meningkatkan responsivitas sistem dengan memungkinkan pertukaran data secara asinkron tanpa page refresh. Secara keseluruhan, proyek ini menghasilkan platform manajemen konten yang efisien, stabil, dan mampu memenuhi standar kebutuhan fungsional sebuah portofolio digital.
